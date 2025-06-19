@@ -54,7 +54,6 @@ def upload_file():
         # Group and sum by therapist + CPT
         summary = cleaned.groupby(["Treating Therapist", "CPT Code"], as_index=False).agg({
             "Units BIlled": "sum",
-            "Provider Paid": "sum"
         })
 
         # Write grouped data to memory
@@ -63,7 +62,7 @@ def upload_file():
             
         output.seek(0)
 
-        filename = f"cleaned_billing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        filename = f"cleaned_billing_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
         return send_file(output, download_name=filename, as_attachment=True)
 
     return HTML_FORM
