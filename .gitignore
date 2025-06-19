@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# Flask-related
+instance/
+*.log
+*.pid
+*.db
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/project files
+.vscode/
+.idea/
+*.swp
+
+# Uploaded files or generated reports (custom to your app)
+uploads/
+reports/
+*.xlsx
+*.csv
+
+# Testing artifacts
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Environment files
+.env
