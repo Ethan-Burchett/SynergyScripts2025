@@ -42,17 +42,25 @@ def upload_file():
 
            # Clean up dollar values and ensure correct types
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
-        cleaned["Provider Paid"] = (
-            cleaned["Provider Paid"]
-            .replace('[\$,]', '', regex=True)
-            .astype(float)
-            .fillna(0)
-        )
+        # cleaned["Provider Paid"] = (
+        #     cleaned["Provider Paid"]
+        #     .replace('[\$,]', '', regex=True)
+        #     .astype(float)
+        #     .fillna(0)
+        # )
 
        # Save cleaned data to memory
         output = BytesIO()
+        # Group and sum by therapist + CPT
+        summary = cleaned.groupby(["Treating Therapist", "CPT Code"], as_index=False).agg({
+            "Units BIlled": "sum",
+            "Provider Paid": "sum"
+        })
+
+        # Write grouped data to memory
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
-            cleaned.to_excel(writer, index=False, sheet_name="Cleaned")
+            summary.to_excel(writer, index=False, sheet_name="Grouped Totals")
+            
         output.seek(0)
 
         filename = f"cleaned_billing_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
