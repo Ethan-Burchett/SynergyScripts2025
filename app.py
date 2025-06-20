@@ -104,7 +104,7 @@ HTML_FORM = """
 </head>
 <body>
     <h2>Synergy Report Tool</h2>
-    <p style="text-align:center; font-size: 1.2em; color: gray;">Generate billing insights from your CPT report</p>
+    <p style="text-align:center; font-size: 1.2em; color: gray;">Generate billing data from your CPT report</p>
     <form method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx" required>
         <input type="submit" value="Generate Report">
@@ -173,8 +173,13 @@ def upload_file():
             summary.to_excel(writer, index=False, sheet_name="Grouped Totals")
             
         output.seek(0)
+        start_date = summary["Week"].min().replace("/", "-")  # e.g., 05/20/2025 → 05-20-2025
+        end_date = summary["Week"].max().replace("/", "-")
+        report_date = datetime.now().strftime("%Y-%m-%d")
 
-        filename = f"cleaned_billing_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
+        filename = f"synergy_report_{start_date}_to_{end_date}_generated_{report_date}.xlsx"
+
+        # filename = f"cleaned_billing_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
         return send_file(output, download_name=filename, as_attachment=True)
 
     return HTML_FORM
