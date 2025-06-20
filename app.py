@@ -34,6 +34,18 @@ CPT_CATEGORY_MAP = {
     "6A930": "Stemwave"
 }
 
+THERAPIST_NAME_MAP = {
+    "Vera Janelle Axtell": "Axtell, Janelle",
+    "Mary Carpenter": "Carpenter, Mary",
+    "Charles Depner":"Depner, Chuck",
+    "Arch Harrison": "Harrison, Arch",
+    "Brad Lyons": "Lyons, Brad",
+    "Kathryn Matsubuchi":"Matsubuchi, Kathryn",
+    "Robyn Moug":"Moug, Robyn",
+    "Cheryl Smith": "Smith, Cheryl",
+
+}
+
 
 HTML_FORM = """
 <!doctype html>
@@ -59,7 +71,8 @@ def upload_file():
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
         #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time.strftime('%Y-%m-%d'))
         #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))
-        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time - pd.Timedelta(days=7))
+        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
+        # df["Week"] = df["Date"] - pd.to_timedelta((df["Date"].dt.weekday + 1) % 7, unit='d')
 
         # 🔍 Add this to debug:
         print("DEBUG: Columns in uploaded file:", df.columns.tolist())
@@ -73,6 +86,7 @@ def upload_file():
         # Keep only the columns we care about
         cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled"]].copy()
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
+        cleaned["Treating Therapist"] = cleaned["Treating Therapist"].map(THERAPIST_NAME_MAP)
 
 
         cleaned["Category"] = cleaned["CPT Code"].map(CPT_CATEGORY_MAP)
