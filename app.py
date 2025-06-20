@@ -103,11 +103,15 @@ HTML_FORM = """
     </style>
 </head>
 <body>
-    <h2>Upload Revenue by CPT Code Report</h2>
+    <h2>Synergy Report Tool</h2>
+    <p style="text-align:center; font-size: 1.2em; color: gray;">Generate billing insights from your CPT report</p>
     <form method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx" required>
         <input type="submit" value="Generate Report">
     </form>
+    <p style="text-align:center; font-size: 0.9em; color: gray;">
+  Note: Processing may take up to 30 seconds depending on file size.
+</p>
 </body>
 </html>
 """
