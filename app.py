@@ -7,13 +7,41 @@ from io import BytesIO
 
 app = Flask(__name__)
 
+CPT_CATEGORY_MAP = {
+    "97110": "Spokane",
+    "97112": "Spokane",
+    "97530": "Spokane",
+    "97535": "Spokane",
+    "97140": "Spokane",
+    "97163": "Spokane",
+    "97162": "Spokane",
+    "97161": "Spokane",
+    "97127": "Spokane",
+    "97165": "Spokane",
+    "97166": "Spokane",
+    "97167": "Spokane",
+    "97168": "Spokane",
+    "97164": "Spokane",
+    "S9982": "Spokane",
+    
+    "G0283": "EStim",
+    "97014": "EStim",
+    "97032": "EStim",
+    
+    "97026": "Red light",
+    
+    "0101T": "Stemwave",
+    "6A930": "Stemwave"
+}
+
+
 HTML_FORM = """
 <!doctype html>
 <title>Upload Excel File</title>
-<h2>Upload Weekly CPT Report</h2>
+<h2>Upload Revenue by CPT Code Report</h2>
 <form method=post enctype=multipart/form-data>
   <input type=file name=file accept=".xlsx" required>
-  <input type=submit value="Generate Weekly Report">
+  <input type=submit value="Generate Report">
 </form>
 """
 
@@ -29,7 +57,9 @@ def upload_file():
         df.columns = df.columns.str.strip()
 
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
-        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time.strftime('%Y-%m-%d'))
+        #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time.strftime('%Y-%m-%d'))
+        #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))
+        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time - pd.Timedelta(days=7))
 
         # 🔍 Add this to debug:
         print("DEBUG: Columns in uploaded file:", df.columns.tolist())
@@ -44,10 +74,14 @@ def upload_file():
         cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled"]].copy()
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
 
-        # Group and sum by therapist + CPT
-        summary = cleaned.groupby(["Week", "Treating Therapist", "CPT Code"], as_index=False).agg({
+
+        cleaned["Category"] = cleaned["CPT Code"].map(CPT_CATEGORY_MAP)
+        cleaned = cleaned.dropna(subset=["Category"])  # Drop any unmapped codes
+
+        summary = cleaned.groupby(["Week", "Treating Therapist", "Category"], as_index=False).agg({
             "Units BIlled": "sum"
-            })
+        })
+        summary["Week"] = pd.to_datetime(summary["Week"]).dt.strftime("%m/%d/%Y")
 
        # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
