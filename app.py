@@ -28,34 +28,30 @@ def upload_file():
         df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
         df.columns = df.columns.str.strip()
 
+        df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
+        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time.strftime('%Y-%m-%d'))
+
         # 🔍 Add this to debug:
         print("DEBUG: Columns in uploaded file:", df.columns.tolist())
 
        # Define columns we want to keep
-        expected_cols = ["Treating Therapist", "CPT Code", "Units BIlled", "Provider Paid"]
+        expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled"]
         missing = [col for col in expected_cols if col not in df.columns]
         if missing:
             return f"Missing required columns: {', '.join(missing)}", 400
         
         # Keep only the columns we care about
-        cleaned = df[expected_cols].copy()
-
-           # Clean up dollar values and ensure correct types
+        cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled"]].copy()
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
-        # cleaned["Provider Paid"] = (
-        #     cleaned["Provider Paid"]
-        #     .replace('[\$,]', '', regex=True)
-        #     .astype(float)
-        #     .fillna(0)
-        # )
+
+        # Group and sum by therapist + CPT
+        summary = cleaned.groupby(["Week", "Treating Therapist", "CPT Code"], as_index=False).agg({
+            "Units BIlled": "sum"
+            })
 
        # Save cleaned data to memory
-        output = BytesIO()
-        # Group and sum by therapist + CPT
-        summary = cleaned.groupby(["Treating Therapist", "CPT Code"], as_index=False).agg({
-            "Units BIlled": "sum",
-        })
-
+        output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
+        
         # Write grouped data to memory
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
             summary.to_excel(writer, index=False, sheet_name="Grouped Totals")
