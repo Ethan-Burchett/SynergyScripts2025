@@ -97,6 +97,15 @@ def upload_file():
         })
         summary["Week"] = pd.to_datetime(summary["Week"]).dt.strftime("%m/%d/%Y")
 
+        ## sorting ## 
+        # Sort by last name extracted from "Treating Therapist"
+        # Sort by last name (A–Z) and week (oldest to newest)
+        summary["_LastName"] = summary["Treating Therapist"].str.split(",").str[0].str.strip()
+        summary["Week_dt"] = pd.to_datetime(summary["Week"])
+
+        summary = summary.sort_values(by=["_LastName", "Week_dt"], ascending=[True, True])
+        summary = summary.drop(columns=["_LastName", "Week_dt"])
+
        # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
         
