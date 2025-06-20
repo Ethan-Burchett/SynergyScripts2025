@@ -47,14 +47,69 @@ THERAPIST_NAME_MAP = {
 }
 
 
+# HTML_FORM = """
+# <!doctype html>
+# <title>Upload Excel File</title>
+# <h2>Upload Revenue by CPT Code Report</h2>
+# <form method=post enctype=multipart/form-data>
+#   <input type=file name=file accept=".xlsx" required>
+#   <input type=submit value="Generate Report">
+# </form>
+# """
+
+
 HTML_FORM = """
 <!doctype html>
-<title>Upload Excel File</title>
-<h2>Upload Revenue by CPT Code Report</h2>
-<form method=post enctype=multipart/form-data>
-  <input type=file name=file accept=".xlsx" required>
-  <input type=submit value="Generate Report">
-</form>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Upload Revenue Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7f8;
+            color: #333;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+        }
+        input[type="submit"] {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            display: block;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload Revenue by CPT Code Report</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".xlsx" required>
+        <input type="submit" value="Generate Report">
+    </form>
+</body>
+</html>
 """
 
 @app.route("/", methods=["GET", "POST"])
