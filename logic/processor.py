@@ -20,9 +20,6 @@ def process_excel(file, therapist_map, cpt_map):
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
         df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
 
-        # 🔍 Add this to debug:
-        print("DEBUG: Columns in uploaded file:", df.columns.tolist())
-
        # Define columns we want to keep
         expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled"]
         missing = [col for col in expected_cols if col not in df.columns]

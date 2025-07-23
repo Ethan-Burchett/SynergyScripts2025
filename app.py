@@ -14,7 +14,16 @@ def upload_file():
         if not file or not file.filename.endswith(".xlsx"):
             return "Please upload a valid .xlsx Excel file.", 400
 
-        summary = process_excel(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
+        report_type = request.form.get("report_type")
+
+        if report_type == "CPT Unit Report":
+             summary = process_excel(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
+             print("creating CPT code report")
+        
+        if report_type == "Revenue Report":
+            summary = process_excel(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
+            print("creating revenue report")
+
 
         return create_ouput_excel(summary)
 
