@@ -2,50 +2,57 @@ from flask import Flask, request, send_file, redirect, url_for
 import pandas as pd
 import tempfile
 import os
+import json
+from dotenv import load_dotenv
 from datetime import datetime
 from io import BytesIO
 
 app = Flask(__name__)
 
-CPT_CATEGORY_MAP = {
-    "97110": "Spokane",
-    "97112": "Spokane",
-    "97530": "Spokane",
-    "97535": "Spokane",
-    "97140": "Spokane",
-    "97163": "Spokane",
-    "97162": "Spokane",
-    "97161": "Spokane",
-    "97127": "Spokane",
-    "97165": "Spokane",
-    "97166": "Spokane",
-    "97167": "Spokane",
-    "97168": "Spokane",
-    "97164": "Spokane",
-    "S9982": "Spokane",
-    
-    "G0283": "EStim",
-    "97014": "EStim",
-    "97032": "EStim",
-    
-    "97026": "Red light",
-    
-    "0101T": "Stemwave",
-    "6A930": "Stemwave"
-}
+load_dotenv()
 
-THERAPIST_NAME_MAP = {
-    "Vera Janelle Axtell": "Axtell, Janelle",
-    "Mary Carpenter": "Carpenter, Mary",
-    "Charles Depner":"Depner, Chuck",
-    "Arch Harrison": "Harrison, Arch",
-    "Brad Lyons": "Lyons, Brad",
-    "Kathryn Matsubuchi":"Matsubuchi, Kathryn",
-    "Robyn Moug":"Moug, Robyn",
-    "Cheryl Smith": "Smith, Cheryl",
+# CPT_CATEGORY_MAP = {
+#     "97110": "Spokane",
+#     "97112": "Spokane",
+#     "97530": "Spokane",
+#     "97535": "Spokane",
+#     "97140": "Spokane",
+#     "97163": "Spokane",
+#     "97162": "Spokane",
+#     "97161": "Spokane",
+#     "97127": "Spokane",
+#     "97165": "Spokane",
+#     "97166": "Spokane",
+#     "97167": "Spokane",
+#     "97168": "Spokane",
+#     "97164": "Spokane",
+#     "S9982": "Spokane",
+    
+#     "G0283": "EStim",
+#     "97014": "EStim",
+#     "97032": "EStim",
+    
+#     "97026": "Red light",
+    
+#     "0101T": "Stemwave",
+#     "6A930": "Stemwave"
+# }
 
-}
+# THERAPIST_NAME_MAP = {
+#     "Vera Janelle Axtell": "Axtell, Janelle",
+#     "Mary Carpenter": "Carpenter, Mary",
+#     "Charles Depner":"Depner, Chuck",
+#     "Arch Harrison": "Harrison, Arch",
+#     "Brad Lyons": "Lyons, Brad",
+#     "Kathryn Matsubuchi":"Matsubuchi, Kathryn",
+#     "Robyn Moug":"Moug, Robyn",
+#     "Cheryl Smith": "Smith, Cheryl",
 
+# }
+
+THERAPIST_NAME_MAP = json.loads(os.getenv("THERAPIST_NAME_MAP_ENV", "{}")) # load secrets from .env and parse into json
+
+CPT_CATEGORY_MAP = json.loads(os.getenv("CPT_CATEGORY_MAP_ENV", "{}"))
 
 # HTML_FORM = """
 # <!doctype html>
