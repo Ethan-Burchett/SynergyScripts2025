@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, redirect, url_for, render_template
+from flask import Flask, request, send_file
 import pandas as pd
 from io import BytesIO
 from datetime import datetime
@@ -18,10 +18,7 @@ def process_excel(file, therapist_map, cpt_map):
         df.columns = df.columns.str.strip()
 
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
-        #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time.strftime('%Y-%m-%d'))
-        #df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))
         df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
-        # df["Week"] = df["Date"] - pd.to_timedelta((df["Date"].dt.weekday + 1) % 7, unit='d')
 
         # 🔍 Add this to debug:
         print("DEBUG: Columns in uploaded file:", df.columns.tolist())
@@ -57,8 +54,6 @@ def process_excel(file, therapist_map, cpt_map):
 
         return summary
        
-
-
 def create_ouput_excel(summary):
      # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
@@ -74,5 +69,4 @@ def create_ouput_excel(summary):
 
         filename = f"synergy_report_{start_date}_to_{end_date}_generated_{report_date}.xlsx"
 
-        # filename = f"cleaned_billing_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
         return send_file(output, download_name=filename, as_attachment=True)

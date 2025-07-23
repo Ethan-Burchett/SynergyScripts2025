@@ -1,14 +1,9 @@
-from flask import Flask, request, send_file, redirect, url_for, render_template
-import pandas as pd
-import tempfile
-import os
-import json
+from flask import Flask, request, render_template
 from datetime import datetime
 from io import BytesIO
 from logic.processor import load_mappings, process_excel, create_ouput_excel
 
 app = Flask(__name__)
-
 
 THERAPIST_NAME_MAP, CPT_CATEGORY_MAP = load_mappings()
 
