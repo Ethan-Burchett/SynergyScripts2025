@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file, redirect, url_for
+from flask import Flask, request, send_file, redirect, url_for, render_template
 import pandas as pd
 import tempfile
 import os
@@ -11,117 +11,9 @@ app = Flask(__name__)
 
 load_dotenv()
 
-# CPT_CATEGORY_MAP = {
-#     "97110": "Spokane",
-#     "97112": "Spokane",
-#     "97530": "Spokane",
-#     "97535": "Spokane",
-#     "97140": "Spokane",
-#     "97163": "Spokane",
-#     "97162": "Spokane",
-#     "97161": "Spokane",
-#     "97127": "Spokane",
-#     "97165": "Spokane",
-#     "97166": "Spokane",
-#     "97167": "Spokane",
-#     "97168": "Spokane",
-#     "97164": "Spokane",
-#     "S9982": "Spokane",
-    
-#     "G0283": "EStim",
-#     "97014": "EStim",
-#     "97032": "EStim",
-    
-#     "97026": "Red light",
-    
-#     "0101T": "Stemwave",
-#     "6A930": "Stemwave"
-# }
-
-# THERAPIST_NAME_MAP = {
-#     "Vera Janelle Axtell": "Axtell, Janelle",
-#     "Mary Carpenter": "Carpenter, Mary",
-#     "Charles Depner":"Depner, Chuck",
-#     "Arch Harrison": "Harrison, Arch",
-#     "Brad Lyons": "Lyons, Brad",
-#     "Kathryn Matsubuchi":"Matsubuchi, Kathryn",
-#     "Robyn Moug":"Moug, Robyn",
-#     "Cheryl Smith": "Smith, Cheryl",
-
-# }
-
 THERAPIST_NAME_MAP = json.loads(os.getenv("THERAPIST_NAME_MAP_ENV", "{}")) # load secrets from .env and parse into json
 
 CPT_CATEGORY_MAP = json.loads(os.getenv("CPT_CATEGORY_MAP_ENV", "{}"))
-
-# HTML_FORM = """
-# <!doctype html>
-# <title>Upload Excel File</title>
-# <h2>Upload Revenue by CPT Code Report</h2>
-# <form method=post enctype=multipart/form-data>
-#   <input type=file name=file accept=".xlsx" required>
-#   <input type=submit value="Generate Report">
-# </form>
-# """
-
-
-HTML_FORM = """
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Upload Revenue Report</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f7f8;
-            color: #333;
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 8px;
-            background-color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-        input[type="file"] {
-            display: block;
-            margin: 20px auto;
-            padding: 10px;
-        }
-        input[type="submit"] {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 4px;
-            display: block;
-            margin: 0 auto;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #2980b9;
-        }
-    </style>
-</head>
-<body>
-    <h2>Synergy Report Tool</h2>
-    <p style="text-align:center; font-size: 1.2em; color: gray;">Generate billing data from your CPT report</p>
-    <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" accept=".xlsx" required>
-        <input type="submit" value="Generate Report">
-    </form>
-    <p style="text-align:center; font-size: 0.9em; color: gray;">
-  Note: Processing may take up to 30 seconds depending on file size.
-</p>
-</body>
-</html>
-"""
 
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
@@ -189,7 +81,7 @@ def upload_file():
         # filename = f"cleaned_billing_{datetime.now().strftime('%Y-%m-%d_%H-%M')}.xlsx"
         return send_file(output, download_name=filename, as_attachment=True)
 
-    return HTML_FORM
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
