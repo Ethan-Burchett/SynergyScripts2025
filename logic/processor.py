@@ -12,7 +12,7 @@ def load_mappings():
     CPT_CATEGORY_MAP = json.loads(os.getenv("CPT_CATEGORY_MAP_ENV", "{}"))
     return THERAPIST_NAME_MAP, CPT_CATEGORY_MAP
 
-def process_excel(file, therapist_map, cpt_map):
+def process_CPT_report(file, therapist_map, cpt_map):
     # Load and process the Excel file
         df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
         df.columns = df.columns.str.strip()
@@ -33,11 +33,13 @@ def process_excel(file, therapist_map, cpt_map):
 
 
         cleaned["Category"] = cleaned["CPT Code"].map(cpt_map)
+        unmapped = cleaned[cleaned["Category"].isna()].copy()
         cleaned = cleaned.dropna(subset=["Category"])  # Drop any unmapped codes
 
         summary = cleaned.groupby(["Week", "Treating Therapist", "Category"], as_index=False).agg({
             "Units BIlled": "sum"
         })
+
         summary["Week"] = pd.to_datetime(summary["Week"]).dt.strftime("%m/%d/%Y")
 
         ## sorting ## 
@@ -49,21 +51,34 @@ def process_excel(file, therapist_map, cpt_map):
         summary = summary.sort_values(by=["_LastName", "Week_dt"], ascending=[True, True])
         summary = summary.drop(columns=["_LastName", "Week_dt"])
 
-        return summary
+        if not unmapped.empty:
+            print("⚠️ Unmapped CPT Codes:")
+            print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
+
+        return summary,unmapped
        
-def create_ouput_excel(summary):
+def create_ouput_excel(summary,type,unmapped):
      # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
 
         # Write grouped data to memory
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
             summary.to_excel(writer, index=False, sheet_name="Grouped Totals")
-            
+
+            # keep track of unmapped codes
+            if unmapped is not None and not unmapped.empty:
+                columns = ["Date", "Treating Therapist", "CPT Code", "Units BIlled"]
+                for col in columns:
+                    if col not in unmapped.columns:
+                        unmapped[col] = None  # fill with blank if missing
+                unmapped[columns].to_excel(writer, index=False, sheet_name="Unmapped CPT Codes")
+
+
         output.seek(0)
         start_date = summary["Week"].min().replace("/", "-")  # e.g., 05/20/2025 → 05-20-2025
         end_date = summary["Week"].max().replace("/", "-")
         report_date = datetime.now().strftime("%Y-%m-%d")
 
-        filename = f"synergy_report_{start_date}_to_{end_date}_generated_{report_date}.xlsx"
+        filename = f"synergy_{type}_report_week_of_{start_date}_generated_{report_date}.xlsx"
 
         return send_file(output, download_name=filename, as_attachment=True)
