@@ -31,6 +31,76 @@ def process_CPT_report(file, therapist_map, cpt_map):
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
         cleaned["Treating Therapist"] = cleaned["Treating Therapist"].map(therapist_map)
 
+        cleaned["Category"] = cleaned["CPT Code"].map(cpt_map)
+        unmapped = cleaned[cleaned["Category"].isna()].copy()
+        cleaned = cleaned.dropna(subset=["Category"])  # Drop any unmapped codes
+
+        summary = cleaned.groupby(["Week", "Treating Therapist", "Category"], as_index=False).agg({
+            "Units BIlled": "sum"
+        })
+
+        summary["Week"] = pd.to_datetime(summary["Week"]).dt.strftime("%m/%d/%Y")
+
+        ## sorting ## 
+        # Sort by last name extracted from "Treating Therapist"
+        # Sort by last name (A–Z) and week (oldest to newest)
+        summary["_LastName"] = summary["Treating Therapist"].str.split(",").str[0].str.strip()
+        summary["Week_dt"] = pd.to_datetime(summary["Week"])
+
+        summary = summary.sort_values(by=["_LastName", "Week_dt"], ascending=[True, True])
+        summary = summary.drop(columns=["_LastName", "Week_dt"])
+
+        if not unmapped.empty:
+            print("⚠️ Unmapped CPT Codes:")
+            print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
+
+        return summary,unmapped
+       
+def create_ouput_CPT_excel(summary,type,unmapped):
+     # Save cleaned data to memory
+        output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
+
+        # Write grouped data to memory
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            summary.to_excel(writer, index=False, sheet_name="Grouped Totals")
+
+            # keep track of unmapped codes
+            if unmapped is not None and not unmapped.empty:
+                columns = ["Date", "Treating Therapist", "CPT Code", "Units BIlled"]
+                for col in columns:
+                    if col not in unmapped.columns:
+                        unmapped[col] = None  # fill with blank if missing
+                unmapped[columns].to_excel(writer, index=False, sheet_name="Unmapped CPT Codes")
+
+
+        output.seek(0)
+        start_date = summary["Week"].min().replace("/", "-")  # e.g., 05/20/2025 → 05-20-2025
+        end_date = summary["Week"].max().replace("/", "-")
+        report_date = datetime.now().strftime("%Y-%m-%d")
+
+        filename = f"synergy_{type}_report_week_of_{start_date}_generated_{report_date}.xlsx"
+
+        return send_file(output, download_name=filename, as_attachment=True)
+
+## REVENUE
+def process_revenue_report(file, therapist_map, cpt_map):
+    # Load and process the Excel file
+        df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
+        df.columns = df.columns.str.strip()
+
+        df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
+        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
+
+       # Define columns we want to keep
+        expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled"]
+        missing = [col for col in expected_cols if col not in df.columns]
+        if missing:
+            return f"Missing required columns: {', '.join(missing)}", 400
+        
+        # Keep only the columns we care about
+        cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled"]].copy()
+        cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
+        cleaned["Treating Therapist"] = cleaned["Treating Therapist"].map(therapist_map)
 
         cleaned["Category"] = cleaned["CPT Code"].map(cpt_map)
         unmapped = cleaned[cleaned["Category"].isna()].copy()
@@ -57,7 +127,7 @@ def process_CPT_report(file, therapist_map, cpt_map):
 
         return summary,unmapped
        
-def create_ouput_excel(summary,type,unmapped):
+def create_ouput_revenue_excel(summary,type,unmapped):
      # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
 
@@ -82,3 +152,4 @@ def create_ouput_excel(summary,type,unmapped):
         filename = f"synergy_{type}_report_week_of_{start_date}_generated_{report_date}.xlsx"
 
         return send_file(output, download_name=filename, as_attachment=True)
+

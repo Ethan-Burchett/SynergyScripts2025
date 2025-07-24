@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template
 from datetime import datetime
 from io import BytesIO
-from logic.processor import load_mappings, process_CPT_report, create_ouput_excel
+from logic.processor import load_mappings, process_CPT_report, create_ouput_CPT_excel, create_ouput_revenue_excel,process_revenue_report
 
 app = Flask(__name__)
 
@@ -19,12 +19,12 @@ def upload_file():
         if report_type == "CPT Unit Report":
              summary, unmapped = process_CPT_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
              print("creating CPT code report")
-             return create_ouput_excel(summary,"CPT",unmapped)
+             return create_ouput_CPT_excel(summary,"CPT",unmapped)
         
         if report_type == "Revenue Report":
-            summary, unmapped = process_CPT_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) ## change this
+            summary, unmapped = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
             print("creating revenue report")
-            return create_ouput_excel(summary,"revenue", unmapped)
+            return create_ouput_revenue_excel(summary,"revenue", unmapped)
 
 
         
