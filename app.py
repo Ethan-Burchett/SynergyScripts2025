@@ -24,13 +24,11 @@ def upload_file():
 
         if report_type == "CPT Unit Report":
              summary, unmapped = process_CPT_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
-            #  print("creating CPT code report")
              session.pop('_flashes', None)  # clear old flash messages
              return create_ouput_CPT_excel(summary,"CPT",unmapped)
         
         if report_type == "Revenue Report":
             summary, unmapped,overpaid_rows = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
-            # print("creating revenue report")
             session.pop('_flashes', None) 
             return create_ouput_revenue_excel(summary,"revenue", unmapped, overpaid_rows)
 
