@@ -39,10 +39,21 @@
             display: block;
             margin: 10px auto;
             cursor: pointer;
+            margin-top: 15px;
         }
 
         input[type="submit"]:hover {
             background-color: #2980b9;
+        }
+
+        .alert {
+            padding: 15px;
+            background-color: #f2dede;
+            color: #a94442;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #ebccd1;
         }
     </style>
 </head>
@@ -50,17 +61,6 @@
 <body>
     <h2>Synergy Report Tool</h2>
     <p style="text-align:center; font-size: 1.2em; color: gray;">Generate billing data from your CPT report</p>
-    
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <div class="alert alert-warning" role="alert">
-        {% for message in messages %}
-        {{ message }}
-        {% endfor %}
-    </div>
-    {% endif %}
-    {% endwith %}
-
     <form method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx" required>
 
@@ -71,6 +71,30 @@
     <p style="text-align:center; font-size: 0.9em; color: gray;">
         Note: Processing may take up to 30 seconds depending on file size.
     </p>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="alert alert-warning" role="alert" id="flash-message">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <script>
+        setTimeout(function () {
+            const flash = document.getElementById("flash-message");
+            if (flash) {
+                flash.style.transition = "opacity 0.5s ease-out";
+                flash.style.opacity = 0;
+                setTimeout(() => flash.remove(), 500);
+            }
+        }, 4000); // 4 seconds before fade out
+    </script>
+
+
+
+
 </body>
 
 </html>
