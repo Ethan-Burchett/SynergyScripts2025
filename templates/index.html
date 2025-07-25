@@ -36,15 +36,27 @@
             padding: 12px 20px;
             font-size: 16px;
             border-radius: 4px;
-            display: block;
-            margin: 10px auto;
             cursor: pointer;
-            margin-top: 15px;
         }
 
         input[type="submit"]:hover {
             background-color: #2980b9;
         }
+
+        .button-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 15px;
+            justify-content: flex-start;
+            max-width: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .button-row input[type="submit"] {
+            width: 160px;
+        }
+
 
         .alert {
             padding: 15px;
@@ -64,8 +76,14 @@
     <form method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx" required>
 
-        <input type="submit" name="report_type" value="CPT Unit Report">
-        <input type="submit" name="report_type" value="Revenue Report">
+        <div class="button-row">
+            <input type="submit" name="report_type" value="CPT Unit Report">
+            <span>Date of Visit</span>
+        </div>
+        <div class="button-row">
+            <input type="submit" name="report_type" value="Revenue Report ">
+            <span>Process Date </span>
+        </div>
     </form>
 
     <p style="text-align:center; font-size: 0.9em; color: gray;">

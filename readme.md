@@ -52,3 +52,28 @@ pip install -r requirements.txt
 python3 app.py
 ```
 In terminal go to the dev server address like: http://192.168.0.210:8080 - might be different for you
+
+
+# Reports 
+
+## CPT Unit Report (Date of Visit)
+
+Purpose: Summarizes the number of CPT units billed per therapist, grouped by CPT category and week.
+
+### How it works:
+- Extracts the “Date of Service” from each visit row.
+- Determines the week starting date (Sunday) from each date.
+- Maps CPT codes to high-level categories using a lookup dictionary.
+- Groups the data by week, therapist, and category, and calculates the total units billed.
+- Use case: Quickly see how much therapy work was delivered by category, by week, and by provider.
+
+ ## Revenue Report (Process Date)
+Purpose: Summarizes financial reimbursement totals using the process date range found in the filename, not per-visit dates.
+### How it works:
+- Extracts the starting date from the filename and assigns it as the “Week” for all rows.
+- Maps CPT codes to categories as above.
+- Groups the data by therapist and category, then sums up:
+    - Provider Paid
+	- Billed
+	- Allowed
+- Identifies any CPT codes not mapped to a known category (if included) and flags rows where Provider Paid > Allowed.

@@ -167,6 +167,6 @@ def create_ouput_revenue_excel(summary,type,unmapped,overpaid_rows):
         report_date = datetime.now().strftime("%Y-%m-%d")
 
         filename = f"synergy_{type}_report_week_of_{start_date}_generated_{report_date}.xlsx"
-
+    
         return send_file(output, download_name=filename, as_attachment=True)
 
