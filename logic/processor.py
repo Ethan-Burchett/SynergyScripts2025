@@ -12,13 +12,16 @@ def load_mappings():
     CPT_CATEGORY_MAP = json.loads(os.getenv("CPT_CATEGORY_MAP_ENV", "{}"))
     return THERAPIST_NAME_MAP, CPT_CATEGORY_MAP
 
+# Date of Service Report for CPT Units
+# Creates sum of CPT codes by person by unit
 def process_CPT_report(file, therapist_map, cpt_map):
     # Load and process the Excel file
         df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
         df.columns = df.columns.str.strip()
 
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
-        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
+        # df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
+        df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D")
 
        # Define columns we want to keep
         expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled"]
@@ -32,7 +35,7 @@ def process_CPT_report(file, therapist_map, cpt_map):
         cleaned["Treating Therapist"] = cleaned["Treating Therapist"].map(therapist_map)
 
         cleaned["Category"] = cleaned["CPT Code"].map(cpt_map)
-        unmapped = cleaned[cleaned["Category"].isna()].copy()
+        unmapped = cleaned[cleaned["Category"].isna()].copy() ## keep track of unmapped cpt codes
         cleaned = cleaned.dropna(subset=["Category"])  # Drop any unmapped codes
 
         summary = cleaned.groupby(["Week", "Treating Therapist", "Category"], as_index=False).agg({
@@ -72,7 +75,6 @@ def create_ouput_CPT_excel(summary,type,unmapped):
                         unmapped[col] = None  # fill with blank if missing
                 unmapped[columns].to_excel(writer, index=False, sheet_name="Unmapped CPT Codes")
 
-
         output.seek(0)
         start_date = summary["Week"].min().replace("/", "-")  # e.g., 05/20/2025 → 05-20-2025
         end_date = summary["Week"].max().replace("/", "-")
@@ -82,32 +84,43 @@ def create_ouput_CPT_excel(summary,type,unmapped):
 
         return send_file(output, download_name=filename, as_attachment=True)
 
+
+
+
 ## REVENUE
+# Process Date
 def process_revenue_report(file, therapist_map, cpt_map):
     # Load and process the Excel file
         df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
         df.columns = df.columns.str.strip()
 
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
-        df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
-
+        # df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
+        df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D")
+        
+        print(df.columns)
        # Define columns we want to keep
-        expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled"]
+        expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled", "$ Billed", "$ Allowed", "Provider Paid"]
         missing = [col for col in expected_cols if col not in df.columns]
         if missing:
             return f"Missing required columns: {', '.join(missing)}", 400
         
         # Keep only the columns we care about
-        cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled"]].copy()
+        cleaned = df[["Week", "Treating Therapist", "CPT Code", "Units BIlled", "Provider Paid","$ Billed", "$ Allowed",]].copy()
         cleaned["Units BIlled"] = pd.to_numeric(cleaned["Units BIlled"], errors="coerce").fillna(0).astype(int)
         cleaned["Treating Therapist"] = cleaned["Treating Therapist"].map(therapist_map)
 
         cleaned["Category"] = cleaned["CPT Code"].map(cpt_map)
         unmapped = cleaned[cleaned["Category"].isna()].copy()
+
+        overpaid_rows = cleaned[cleaned["Provider Paid"] > cleaned["$ Allowed"]]
+
         cleaned = cleaned.dropna(subset=["Category"])  # Drop any unmapped codes
 
         summary = cleaned.groupby(["Week", "Treating Therapist", "Category"], as_index=False).agg({
-            "Units BIlled": "sum"
+            "Provider Paid": "sum",
+            "$ Billed": "sum",
+            "$ Allowed": "sum"
         })
 
         summary["Week"] = pd.to_datetime(summary["Week"]).dt.strftime("%m/%d/%Y")
@@ -125,9 +138,9 @@ def process_revenue_report(file, therapist_map, cpt_map):
             print("⚠️ Unmapped CPT Codes:")
             print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
 
-        return summary,unmapped
+        return summary,unmapped,overpaid_rows
        
-def create_ouput_revenue_excel(summary,type,unmapped):
+def create_ouput_revenue_excel(summary,type,unmapped,overpaid_rows):
      # Save cleaned data to memory
         output = BytesIO() ## create a file that exists in memory - no disk required - gets deleted at the end
 
@@ -137,11 +150,21 @@ def create_ouput_revenue_excel(summary,type,unmapped):
 
             # keep track of unmapped codes
             if unmapped is not None and not unmapped.empty:
-                columns = ["Date", "Treating Therapist", "CPT Code", "Units BIlled"]
+                print(unmapped.columns)
+                columns = ["Treating Therapist", "CPT Code", "Units BIlled"]
                 for col in columns:
                     if col not in unmapped.columns:
                         unmapped[col] = None  # fill with blank if missing
                 unmapped[columns].to_excel(writer, index=False, sheet_name="Unmapped CPT Codes")
+
+            # keep track of unmapped codes
+            if overpaid_rows is not None and not overpaid_rows.empty:
+                print(overpaid_rows.columns)
+                columns = overpaid_rows.columns
+                for col in columns:
+                    if col not in unmapped.columns:
+                        unmapped[col] = None  # fill with blank if missing
+                unmapped[columns].to_excel(writer, index=False, sheet_name="Overpaid Provider vs Allowed")
 
 
         output.seek(0)

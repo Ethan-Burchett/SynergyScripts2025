@@ -22,9 +22,9 @@ def upload_file():
              return create_ouput_CPT_excel(summary,"CPT",unmapped)
         
         if report_type == "Revenue Report":
-            summary, unmapped = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
+            summary, unmapped,overpaid_rows = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
             print("creating revenue report")
-            return create_ouput_revenue_excel(summary,"revenue", unmapped)
+            return create_ouput_revenue_excel(summary,"revenue", unmapped, overpaid_rows)
 
 
         
