@@ -1,9 +1,12 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, flash, redirect, url_for
 from datetime import datetime
 from io import BytesIO
-from logic.processor import load_mappings, process_CPT_report, create_ouput_CPT_excel, create_ouput_revenue_excel,process_revenue_report
+from logic.processor import process_CPT_report, create_ouput_CPT_excel, create_ouput_revenue_excel,process_revenue_report
+from logic.validators import is_valid_date_range_filename
+from logic.init import load_mappings
 
 app = Flask(__name__)
+app.secret_key = "test"
 
 THERAPIST_NAME_MAP, CPT_CATEGORY_MAP = load_mappings()
 
@@ -13,7 +16,12 @@ def upload_file():
         file = request.files.get("file")
         if not file or not file.filename.endswith(".xlsx"):
             return "Please upload a valid .xlsx Excel file.", 400
+        if not is_valid_date_range_filename(file.filename):
+            flash("⚠️ Invalid Date Range: Your file must start on a Sunday and end on a Saturday (7-day range).")
+            return redirect(url_for('upload_file'))
 
+
+        
         report_type = request.form.get("report_type")
 
         if report_type == "CPT Unit Report":

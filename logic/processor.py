@@ -96,8 +96,8 @@ def process_revenue_report(file, therapist_map, cpt_map):
 
         df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
         # df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
-        df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D")
-        
+        df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D") ## I think this works for one week only. 
+
         print(df.columns)
        # Define columns we want to keep
         expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled", "$ Billed", "$ Allowed", "Provider Paid"]
