@@ -20,19 +20,17 @@ def upload_file():
             flash("⚠️ Invalid Date Range: Your file must start on a Sunday and end on a Saturday (7-day range).")
             return redirect(url_for('upload_file'))
 
-
-
         report_type = request.form.get("report_type")
 
         if report_type == "CPT Unit Report":
              summary, unmapped = process_CPT_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
-             print("creating CPT code report")
+            #  print("creating CPT code report")
              session.pop('_flashes', None)  # clear old flash messages
              return create_ouput_CPT_excel(summary,"CPT",unmapped)
         
         if report_type == "Revenue Report":
             summary, unmapped,overpaid_rows = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
-            print("creating revenue report")
+            # print("creating revenue report")
             session.pop('_flashes', None) 
             return create_ouput_revenue_excel(summary,"revenue", unmapped, overpaid_rows)
 

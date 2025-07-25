@@ -53,9 +53,9 @@ def process_CPT_report(file, therapist_map, cpt_map):
         summary = summary.sort_values(by=["_LastName", "Week_dt"], ascending=[True, True])
         summary = summary.drop(columns=["_LastName", "Week_dt"])
 
-        if not unmapped.empty:
-            print("⚠️ Unmapped CPT Codes:")
-            print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
+        # if not unmapped.empty:
+        #     print("⚠️ Unmapped CPT Codes:")
+        #     print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
 
         return summary,unmapped
        
@@ -98,7 +98,6 @@ def process_revenue_report(file, therapist_map, cpt_map):
         # df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
         df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D") ## I think this works for one week only. 
 
-        print(df.columns)
        # Define columns we want to keep
         expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled", "$ Billed", "$ Allowed", "Provider Paid"]
         missing = [col for col in expected_cols if col not in df.columns]
@@ -134,9 +133,9 @@ def process_revenue_report(file, therapist_map, cpt_map):
         summary = summary.sort_values(by=["_LastName", "Week_dt"], ascending=[True, True])
         summary = summary.drop(columns=["_LastName", "Week_dt"])
 
-        if not unmapped.empty:
-            print("⚠️ Unmapped CPT Codes:")
-            print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
+        # if not unmapped.empty:
+            # print("⚠️ Unmapped CPT Codes:")
+            # print(unmapped[["CPT Code", "Treating Therapist"]].drop_duplicates())
 
         return summary,unmapped,overpaid_rows
        
@@ -150,7 +149,7 @@ def create_ouput_revenue_excel(summary,type,unmapped,overpaid_rows):
 
             # keep track of unmapped codes
             if unmapped is not None and not unmapped.empty:
-                print(unmapped.columns)
+                # print(unmapped.columns)
                 columns = ["Treating Therapist", "CPT Code", "Units BIlled"]
                 for col in columns:
                     if col not in unmapped.columns:
@@ -159,7 +158,7 @@ def create_ouput_revenue_excel(summary,type,unmapped,overpaid_rows):
 
             # keep track of unmapped codes
             if overpaid_rows is not None and not overpaid_rows.empty:
-                print(overpaid_rows.columns)
+                # print(overpaid_rows.columns)
                 columns = overpaid_rows.columns
                 for col in columns:
                     if col not in unmapped.columns:
