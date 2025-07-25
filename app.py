@@ -40,12 +40,15 @@ def upload_file():
              summary, unmapped = process_CPT_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP)
              session.pop('_flashes', None)  # clear old flash messages
              app.logger.info("Creating CPT code report\n" + file.filename)
+            
              return create_ouput_CPT_excel(summary,"CPT",unmapped)
         
         if report_type == "Revenue Report":
+            print("hereee")
             summary, unmapped,overpaid_rows = process_revenue_report(file,THERAPIST_NAME_MAP,CPT_CATEGORY_MAP) 
             session.pop('_flashes', None) 
             app.logger.info("Creating revenue code report\n" + file.filename)
+            print("Creating revenue code report\n" + file.filename)
             return create_ouput_revenue_excel(summary,"revenue", unmapped, overpaid_rows)
 
     return render_template("index.html")
