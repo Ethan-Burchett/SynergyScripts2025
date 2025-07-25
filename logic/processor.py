@@ -4,6 +4,7 @@ from io import BytesIO
 from datetime import datetime
 import os
 import json
+import re
 
 def load_mappings():
     from dotenv import load_dotenv # type: ignore
@@ -94,9 +95,18 @@ def process_revenue_report(file, therapist_map, cpt_map):
         df = pd.read_excel(file, sheet_name="Detailed Data", engine="openpyxl")
         df.columns = df.columns.str.strip()
 
-        df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
+        ## get date from filename
+        # print(file.filename) #CPT Report - 07-13-25 to 07-19-25.xlsx
+        match = re.match(r"CPT Report - (\d{2}-\d{2}-\d{2}) to \d{2}-\d{2}-\d{2}\.xlsx", file.filename)
+
+        if match:
+            start_date_str = match.group(1)
+            print("start date: " + start_date_str)  # ➝ "07-13-25"
+
+        df["Week"] = pd.to_datetime(start_date_str)
+        #df["Date"] = pd.to_datetime(df["Date of Service"], errors="coerce")
         # df["Week"] = df["Date"].dt.to_period("W").apply(lambda r: r.start_time + pd.Timedelta(days=7))  ## working 1 week offset, but starts on monday
-        df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D") ## I think this works for one week only. 
+        #df["Week"] = df["Date"] - pd.to_timedelta(df["Date"].dt.weekday + 1, unit="D") ## I think this works for one week only. 
 
        # Define columns we want to keep
         expected_cols = ["Date of Service", "Treating Therapist", "CPT Code", "Units BIlled", "$ Billed", "$ Allowed", "Provider Paid"]
