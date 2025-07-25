@@ -90,7 +90,7 @@ def process_revenue_report(file, therapist_map, cpt_map):
         df.columns = df.columns.str.strip()
 
         ## get date from filename
-        match = re.match(r"CPT Report - (\d{2}-\d{2}-\d{2}) to \d{2}-\d{2}-\d{2}\.xlsx", file.filename)
+        match = re.match(r"CPT Report - (\d{2}-\d{2}-\d{2}) to \d{2}-\d{2}-\d{2}(?:.*?)?\.xlsx.*", file.filename)
         if match:
             start_date_str = match.group(1)
             print("start date: " + start_date_str)  # ➝ "07-13-25"

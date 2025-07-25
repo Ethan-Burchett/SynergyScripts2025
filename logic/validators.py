@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 
 def is_valid_date_range_filename(filename: str) -> bool:
     # Match pattern like 'CPT Report - 07-06-25 to 07-12-25.xlsx'
-    match = re.match(r"CPT Report - (\d{2}-\d{2}-\d{2}) to (\d{2}-\d{2}-\d{2})\.xlsx$", filename)
+    match = re.match(r"CPT Report - (\d{2}-\d{2}-\d{2}) to (\d{2}-\d{2}-\d{2})(?:.*)?\.xlsx$", filename)
     if not match:
         return False
 
